@@ -1,0 +1,61 @@
+{% extends "inventory/base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Inventory Dashboard</h1>
+    <a href="{% url 'new_entry' %}" class="btn btn-primary">+ New Entry</a>
+</div>
+
+{% if products %}
+<div class="product-grid">
+    {% for product in products %}
+    <div class="product-card" data-product-id="{{ product.id }}">
+        <div class="product-image-wrap">
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+            {% else %}
+                <div class="product-image-placeholder">No Image</div>
+            {% endif %}
+        </div>
+        <div class="product-body">
+            <h2 class="product-name">{{ product.name }}</h2>
+
+            <div class="counter-row">
+                <span class="counter-label">Available</span>
+                <div class="counter-control">
+                    <button class="counter-btn" data-action="stock" data-direction="decrease" aria-label="Decrease available quantity">−</button>
+                    <span class="counter-value" data-role="quantity">{{ product.quantity }}</span>
+                    <button class="counter-btn" data-action="stock" data-direction="increase" aria-label="Increase available quantity">+</button>
+                </div>
+            </div>
+
+            <div class="counter-row">
+                <span class="counter-label">Sold</span>
+                <div class="counter-control">
+                    <button class="counter-btn" data-action="sold" data-direction="decrease" aria-label="Undo a sale">−</button>
+                    <span class="counter-value" data-role="quantity_sold">{{ product.quantity_sold }}</span>
+                    <button class="counter-btn" data-action="sold" data-direction="increase" aria-label="Record a sale">+</button>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <a href="{% url 'edit_product' product.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                <form method="post" action="{% url 'delete_product' product.id %}" class="delete-form" onsubmit="return confirm('Are you sure you want to delete &quot;{{ product.name|escapejs }}&quot;?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No inventory items yet.</p>
+    <a href="{% url 'new_entry' %}" class="btn btn-primary">Add your first item</a>
+</div>
+{% endif %}
+
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

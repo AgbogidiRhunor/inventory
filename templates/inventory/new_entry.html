@@ -1,0 +1,32 @@
+{% extends "inventory/base.html" %}
+{% block title %}New Entry{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="page-header">
+        <h1>New Entry</h1>
+    </div>
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <label for="{{ form.name.id_for_label }}">Item Name</label>
+            {{ form.name }}
+            {% for error in form.name.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
+            <label for="{{ form.image.id_for_label }}">Item Image</label>
+            {{ form.image }}
+            <p class="field-hint">JPG, PNG, or WEBP. Max 3MB.</p>
+            {% for error in form.image.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
+            <label for="{{ form.initial_quantity.id_for_label }}">Initial Quantity</label>
+            {{ form.initial_quantity }}
+            {% for error in form.initial_quantity.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Item</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

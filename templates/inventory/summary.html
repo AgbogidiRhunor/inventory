@@ -1,0 +1,42 @@
+{% extends "inventory/base.html" %}
+{% block title %}Summary{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Inventory Summary</h1>
+    <a href="{% url 'summary_pdf' %}" class="btn btn-primary">Download PDF</a>
+</div>
+
+<div class="summary-stats">
+    <div class="stat-card">
+        <span class="stat-label">Total Products</span>
+        <span class="stat-value">{{ total_products }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Units Available</span>
+        <span class="stat-value">{{ total_available }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Units Sold</span>
+        <span class="stat-value">{{ total_sold }}</span>
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table class="summary-table">
+        <thead>
+            <tr><th>Item</th><th>Available</th><th>Sold</th></tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.quantity }}</td>
+                <td>{{ product.quantity_sold }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No products yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

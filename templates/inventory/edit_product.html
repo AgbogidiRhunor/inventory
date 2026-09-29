@@ -1,0 +1,31 @@
+{% extends "inventory/base.html" %}
+{% block title %}Edit {{ product.name }}{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="page-header">
+        <h1>Edit Item</h1>
+    </div>
+    <div class="form-card">
+        {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="edit-current-image">
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <label for="{{ form.name.id_for_label }}">Item Name</label>
+            {{ form.name }}
+            {% for error in form.name.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
+            <label for="{{ form.image.id_for_label }}">Replace Image</label>
+            {{ form.image }}
+            <p class="field-hint">Leave empty to keep the current image. Max 3MB.</p>
+            {% for error in form.image.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
