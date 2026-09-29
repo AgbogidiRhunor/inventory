@@ -93,6 +93,7 @@ body {
 
 /* ---------- Buttons ---------- */
 .btn {
+    font-family: inherit;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -123,6 +124,24 @@ body {
 .btn-danger:hover { background: var(--danger-dark); }
 .btn-sm { padding: 7px 12px; font-size: 0.82rem; }
 .btn-block { width: 100%; }
+
+/* ---------- Logout ---------- */
+.logout-form {
+    margin: 0;
+    display: inline-flex;
+}
+
+.logout-form .btn {
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+/* Optional: subtle red hint on hover so it reads as a "leave" action */
+.logout-form .btn:hover {
+    background: #fef2f2;
+    color: var(--danger);
+    border-color: #fecaca;
+}
 
 /* ---------- Messages ---------- */
 .messages { margin-bottom: 20px; }
