@@ -2,35 +2,44 @@ import os
 from pathlib import Path
 
 import dj_database_url
-from dotenv import load_dotenv
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
+SECRET_KEY = config(
+    "SECRET_KEY",
+    default="django-insecure-change-me-in-production",
+)
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-me-in-production")
+DEBUG = config(
+    "DEBUG",
+    default=False,
+    cast=bool,
+)
 
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="localhost,127.0.0.1",
+    cast=Csv(),
+)
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,inventory-ashen-five.vercel.app").split(",")
-    if host.strip()
-]
+VERCEL_URL = config("VERCEL_URL", default="")
 
-VERCEL_URL = os.environ.get("VERCEL_URL")
-
-if VERCEL_URL:
+if VERCEL_URL and VERCEL_URL not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(VERCEL_URL)
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
+
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="",
+    cast=Csv(),
+)
 
 if VERCEL_URL:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{VERCEL_URL}")
+    vercel_origin = f"https://{VERCEL_URL}"
+
+    if vercel_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(vercel_origin)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -39,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "inventory",
 ]
 
@@ -71,57 +81,101 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+
+DATABASE_URL = config(
+    "DATABASE_URL",
+    default="",
+)
 
 if DATABASE_URL:
+    # Production / Vercel PostgreSQL
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=os.environ.get("DB_SSL_REQUIRE", "True").lower() == "true",
+            conn_max_age=0,
+            ssl_require=config(
+                "DB_SSL_REQUIRE",
+                default=True,
+                cast=bool,
+            ),
         )
     }
+
 else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME"),
-            "USER": os.environ.get("DB_USER"),
-            "PASSWORD": os.environ.get("DB_PASSWORD"),
-            "HOST": os.environ.get("DB_HOST", "localhost"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
-            "OPTIONS": {
-                "connect_timeout": 10,
-            },
+    local_db_name = config("DB_NAME", default="")
+
+    if local_db_name:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": local_db_name,
+                "USER": config("DB_USER", default="postgres"),
+                "PASSWORD": config("DB_PASSWORD", default=""),
+                "HOST": config("DB_HOST", default="localhost"),
+                "PORT": config("DB_PORT", default="5432"),
+                "CONN_MAX_AGE": 60,
+                "OPTIONS": {
+                    "connect_timeout": 10,
+                },
+            }
         }
-    }
+
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
+
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = os.environ.get("TIME_ZONE", "Africa/Lagos")
+
+TIME_ZONE = config(
+    "TIME_ZONE",
+    default="Africa/Lagos",
+)
+
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 STORAGES = {
     "default": {
@@ -132,20 +186,46 @@ STORAGES = {
     },
 }
 
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
 LOGIN_URL = "login"
+
 LOGIN_REDIRECT_URL = "dashboard"
+
 LOGOUT_REDIRECT_URL = "login"
 
-BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN", "")
+BLOB_READ_WRITE_TOKEN = config(
+    "BLOB_READ_WRITE_TOKEN",
+    default="",
+)
 
 MAX_IMAGE_UPLOAD_SIZE_BYTES = 3 * 1024 * 1024
-ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+ALLOWED_IMAGE_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+}
+
 MAX_IMAGE_DIMENSION = 1200
 
+
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True").lower() == "true"
+
+    SECURE_SSL_REDIRECT = config(
+        "SECURE_SSL_REDIRECT",
+        default=True,
+        cast=bool,
+    )
+
     SESSION_COOKIE_SECURE = True
+
     CSRF_COOKIE_SECURE = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
