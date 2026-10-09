@@ -217,7 +217,7 @@ MAX_IMAGE_DIMENSION = 1200
 # Latin symbols ($, £, €); for others use a text prefix such as "NGN ".
 CURRENCY_SYMBOL = config(
     "CURRENCY_SYMBOL",
-    default="$",
+    default="₦",
 )
 
 
