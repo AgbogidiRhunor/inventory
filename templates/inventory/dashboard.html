@@ -10,7 +10,7 @@
 {% if products %}
 <div class="product-grid">
     {% for product in products %}
-    <div class="product-card" data-product-id="{{ product.id }}">
+    <div class="product-card" data-product-id="{{ product.id }}" data-price="{{ product.price|stringformat:'.2f' }}" data-name="{{ product.name }}">
         <div class="product-image-wrap">
             {% if product.image_url %}
                 <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
@@ -20,6 +20,7 @@
         </div>
         <div class="product-body">
             <h2 class="product-name">{{ product.name }}</h2>
+            <p class="product-price">{{ currency }}{{ product.price|floatformat:"2g" }}</p>
 
             <div class="counter-row">
                 <span class="counter-label">Available</span>
@@ -39,6 +40,8 @@
                 </div>
             </div>
 
+            <p class="revenue-line">Revenue: <strong>{{ currency }}<span data-role="revenue">{{ product.revenue|floatformat:"2g" }}</span></strong></p>
+
             <div class="card-actions">
                 <a href="{% url 'edit_product' product.id %}" class="btn btn-secondary btn-sm">Edit</a>
                 <form method="post" action="{% url 'delete_product' product.id %}" class="delete-form" onsubmit="return confirm('Are you sure you want to delete &quot;{{ product.name|escapejs }}&quot;?');">
@@ -56,6 +59,20 @@
     <a href="{% url 'new_entry' %}" class="btn btn-primary">Add your first item</a>
 </div>
 {% endif %}
+
+<dialog id="sale-dialog" class="sale-dialog" aria-labelledby="sale-dialog-title">
+    <form method="dialog" id="sale-form">
+        <h2 id="sale-dialog-title">Record a sale</h2>
+        <p class="sale-dialog-item" id="sale-dialog-item"></p>
+        <label for="sale-price">Price sold for ({{ currency }})</label>
+        <input type="number" id="sale-price" step="0.01" min="0" inputmode="decimal" required>
+        <p class="field-error" id="sale-dialog-error" hidden></p>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="sale-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="sale-confirm">Record Sale</button>
+        </div>
+    </form>
+</dialog>
 
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

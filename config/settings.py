@@ -76,6 +76,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "inventory.context_processors.currency",
             ],
         },
     },
@@ -211,6 +212,13 @@ ALLOWED_IMAGE_EXTENSIONS = {
 }
 
 MAX_IMAGE_DIMENSION = 1200
+
+# Currency symbol shown next to prices. The PDF font only supports basic
+# Latin symbols ($, £, €); for others use a text prefix such as "NGN ".
+CURRENCY_SYMBOL = config(
+    "CURRENCY_SYMBOL",
+    default="$",
+)
 
 
 if not DEBUG:

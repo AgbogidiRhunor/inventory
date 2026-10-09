@@ -556,3 +556,26 @@ body {
 @media (max-width: 480px) {
     .container { padding: 20px 16px 50px; }
 }
+/* Price + revenue */
+.product-price { margin: -6px 0 12px; font-size: 1rem; font-weight: 600; color: var(--primary); }
+.revenue-line { margin: 4px 0 0; font-size: 0.85rem; color: var(--gray-600); }
+
+/* Sale price dialog */
+.sale-dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 22px;
+    width: min(92vw, 360px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+.sale-dialog::backdrop { background: rgba(17, 24, 39, 0.5); }
+.sale-dialog h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.sale-dialog-item { margin: 0 0 8px; color: var(--gray-600); font-size: 0.9rem; }
+.sale-dialog label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 0.9rem; }
+.sale-dialog input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 1.2rem;
+}

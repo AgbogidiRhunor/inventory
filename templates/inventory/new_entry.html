@@ -18,6 +18,10 @@
             <p class="field-hint">JPG, PNG, or WEBP. Max 3MB.</p>
             {% for error in form.image.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
 
+            <label for="{{ form.price.id_for_label }}">Initial Price ({{ currency }})</label>
+            {{ form.price }}
+            {% for error in form.price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
             <label for="{{ form.initial_quantity.id_for_label }}">Initial Quantity</label>
             {{ form.initial_quantity }}
             {% for error in form.initial_quantity.errors %}<p class="field-error">{{ error }}</p>{% endfor %}

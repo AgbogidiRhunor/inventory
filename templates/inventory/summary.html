@@ -19,22 +19,28 @@
         <span class="stat-label">Total Units Sold</span>
         <span class="stat-value">{{ total_sold }}</span>
     </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Revenue</span>
+        <span class="stat-value">{{ currency }}{{ total_revenue|floatformat:"2g" }}</span>
+    </div>
 </div>
 
 <div class="table-wrap">
     <table class="summary-table">
         <thead>
-            <tr><th>Item</th><th>Available</th><th>Sold</th></tr>
+            <tr><th>Item</th><th>Price</th><th>Available</th><th>Sold</th><th>Revenue</th></tr>
         </thead>
         <tbody>
             {% for product in products %}
             <tr>
                 <td>{{ product.name }}</td>
+                <td>{{ currency }}{{ product.price|floatformat:"2g" }}</td>
                 <td>{{ product.quantity }}</td>
                 <td>{{ product.quantity_sold }}</td>
+                <td>{{ currency }}{{ product.revenue|floatformat:"2g" }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="3">No products yet.</td></tr>
+            <tr><td colspan="5">No products yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>

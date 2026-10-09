@@ -27,3 +27,11 @@ No public registration — create staff users via Django Admin (`/admin/`) or `c
 - Images are validated (jpg/png/webp, 3MB max), resized to a 1200px longest side, then uploaded to Vercel Blob — only the URL is stored in Postgres.
 - Stock/sale adjustments use `select_for_update` inside a transaction so available quantity and sold quantity never drift out of sync, and neither can go negative.
 - The PDF summary is generated in memory on request — nothing is written to disk.
+
+## Prices & revenue
+- Each item has an **Initial Price** (set on New Entry, editable on Edit) shown on its dashboard card.
+- Clicking **Sold +** asks for the price the unit actually sold for (pre-filled with the initial price). Each sale is stored separately, so different units can sell at different prices.
+- **Sold −** undoes the most recent sale (stock and revenue are both restored).
+- The Summary page and PDF show total revenue plus price / available / sold / revenue per item.
+- Optional env var `CURRENCY_SYMBOL` (default `$`). The PDF font only supports basic symbols like `$`, `£`, `€`; for others use a text prefix such as `NGN `.
+- After pulling this update, run `python manage.py migrate` (existing items get a price of 0.00; edit them to set the real price).
