@@ -23,7 +23,59 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", handleSaleSubmit);
 
     initSearch();
+    initMessages();
 });
+
+// ---------- Flash messages ----------
+// Success/error messages ("Item updated successfully.") fade out on their own.
+const MESSAGE_DISPLAY_MS = 6000;
+
+function initMessages() {
+    const container = document.querySelector(".messages");
+    if (!container) return;
+    container.querySelectorAll(".message").forEach((message) => {
+        setTimeout(() => dismissMessage(message, container), MESSAGE_DISPLAY_MS);
+    });
+}
+
+function dismissMessage(message, container) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fadeMs = reduceMotion ? 0 : 400;
+
+    // Is this the last message left on screen? Then the container's own
+    // bottom margin should collapse too, so the page doesn't jump afterwards.
+    message.dataset.dismissing = "1";
+    const isLast = Array.from(container.querySelectorAll(".message")).every(
+        (m) => m.dataset.dismissing
+    );
+
+    // Pin the current height so it can animate down to zero.
+    message.style.boxSizing = "border-box";
+    message.style.height = `${message.offsetHeight}px`;
+    message.style.overflow = "hidden";
+    const transition = ["opacity", "height", "margin", "padding", "border-width"]
+        .map((prop) => `${prop} ${fadeMs}ms ease`)
+        .join(", ");
+    message.style.transition = transition;
+    if (isLast) {
+        container.style.transition = `margin-bottom ${fadeMs}ms ease`;
+    }
+    void message.offsetHeight; // apply the starting values before animating
+
+    message.style.opacity = "0";
+    message.style.height = "0";
+    message.style.marginTop = "0";
+    message.style.marginBottom = "0";
+    message.style.paddingTop = "0";
+    message.style.paddingBottom = "0";
+    message.style.borderWidth = "0";
+    if (isLast) container.style.marginBottom = "0";
+
+    setTimeout(() => {
+        message.remove();
+        if (!container.querySelector(".message")) container.remove();
+    }, fadeMs + 50);
+}
 
 // ---------- Search ----------
 // Lowercase and strip accents so "creole" also finds "Créole".
