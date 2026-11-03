@@ -46,10 +46,64 @@ class InventoryPriceTests(TestCase):
     def test_edit_changes_price_without_touching_past_sales(self):
         p = self._product()
         self._post("adjust_sold", pk=p.pk, direction="increase", price="380")
-        self.client.post(reverse("edit_product", args=[p.pk]), {"name": "Laptop", "price": "500"})
+        self.client.post(
+            reverse("edit_product", args=[p.pk]), {"name": "Laptop", "price": "500", "quantity": "3"}
+        )
         p.refresh_from_db()
         self.assertEqual(p.price, Decimal("500.00"))
         self.assertEqual(Sale.objects.get().unit_price, Decimal("380.00"))
+
+    # --- editing the available quantity by typing it -------------------
+    def _edit(self, p, **fields):
+        data = {"name": p.name, "price": str(p.price), "quantity": str(p.quantity)}
+        data.update(fields)
+        return self.client.post(reverse("edit_product", args=[p.pk]), data)
+
+    def test_edit_form_is_prefilled_with_current_quantity(self):
+        p = self._product(quantity=7)
+        resp = self.client.get(reverse("edit_product", args=[p.pk]))
+        self.assertEqual(resp.context["form"].initial["quantity"], 7)
+        self.assertContains(resp, 'value="7"')
+
+    def test_edit_sets_available_quantity(self):
+        p = self._product(quantity=4)
+        resp = self._edit(p, quantity="25")
+        self.assertRedirects(resp, reverse("dashboard"))
+        p.refresh_from_db()
+        self.assertEqual(p.quantity, 25)
+
+    def test_edit_quantity_does_not_touch_sold_or_sales(self):
+        p = self._product(quantity=4)
+        self._post("adjust_sold", pk=p.pk, direction="increase", price="380")
+        self._post("adjust_sold", pk=p.pk, direction="increase", price="420")
+        p.refresh_from_db()  # quantity 2, sold 2
+        self._edit(p, quantity="50")
+        p.refresh_from_db()
+        self.assertEqual((p.quantity, p.quantity_sold), (50, 2))
+        self.assertEqual(Sale.objects.count(), 2)
+        # undo still works normally afterwards
+        data = self._post("adjust_sold", pk=p.pk, direction="decrease").json()
+        self.assertEqual((data["quantity"], data["quantity_sold"], data["revenue"]), (51, 1, "380.00"))
+
+    def test_edit_quantity_can_be_zero(self):
+        p = self._product(quantity=4)
+        self._edit(p, quantity="0")
+        p.refresh_from_db()
+        self.assertEqual(p.quantity, 0)
+
+    def test_edit_rejects_invalid_quantity_and_changes_nothing(self):
+        p = self._product(quantity=4)
+        for bad in ("", "-1", "abc", "2.5", "99999999999"):
+            resp = self._edit(p, name="Changed", quantity=bad)
+            self.assertEqual(resp.status_code, 200, bad)  # form re-rendered with errors
+        p.refresh_from_db()
+        self.assertEqual((p.name, p.quantity), ("Laptop", 4))
+
+    def test_edit_saves_name_and_price_together_with_quantity(self):
+        p = self._product(quantity=4)
+        self._edit(p, name="Gaming Laptop", price="999.99", quantity="9")
+        p.refresh_from_db()
+        self.assertEqual((p.name, p.price, p.quantity), ("Gaming Laptop", Decimal("999.99"), 9))
 
     # --- selling at a custom price ------------------------------------
     def test_sale_records_price_actually_sold_for(self):

@@ -21,6 +21,11 @@
             <p class="field-hint">Changing this does not affect sales already recorded.</p>
             {% for error in form.price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
 
+            <label for="{{ form.quantity.id_for_label }}">Available Quantity</label>
+            {{ form.quantity }}
+            <p class="field-hint">Sets the available stock directly. Units sold and recorded sales are not changed.</p>
+            {% for error in form.quantity.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+
             <label for="{{ form.image.id_for_label }}">Replace Image</label>
             {{ form.image }}
             <p class="field-hint">Leave empty to keep the current image. Max 3MB.</p>

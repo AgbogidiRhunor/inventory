@@ -13,14 +13,24 @@ def _price_field(label):
     )
 
 
+# Largest value a PostgreSQL integer column can hold.
+MAX_QUANTITY = 2147483647
+
+
 class ProductCreateForm(forms.Form):
     name = forms.CharField(max_length=200)
     image = forms.ImageField(required=False)
     price = _price_field("Initial Price")
-    initial_quantity = forms.IntegerField(min_value=0, initial=0)
+    initial_quantity = forms.IntegerField(min_value=0, max_value=MAX_QUANTITY, initial=0)
 
 
 class ProductEditForm(forms.Form):
     name = forms.CharField(max_length=200)
     image = forms.ImageField(required=False)
     price = _price_field("Initial Price")
+    quantity = forms.IntegerField(
+        label="Available Quantity",
+        min_value=0,
+        max_value=MAX_QUANTITY,
+        widget=forms.NumberInput(attrs={"step": "1", "min": "0", "inputmode": "numeric"}),
+    )

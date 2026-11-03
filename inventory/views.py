@@ -86,19 +86,42 @@ def edit_product(request, pk):
                         request, "inventory/edit_product.html", {"form": form, "product": product}
                     )
 
-                old_pathname = product.image_blob_pathname
-                product.image_url = new_url
-                product.image_blob_pathname = new_pathname
-                if old_pathname:
-                    delete_product_image(old_pathname)
+                new_image = (new_url, new_pathname)
+            else:
+                new_image = None
 
-            product.name = form.cleaned_data["name"]
-            product.price = form.cleaned_data["price"]
-            product.save()
+            # Re-read the row under a lock so we never overwrite a sale or stock
+            # change made elsewhere (e.g. another tab) with stale values.
+            old_pathname = None
+            with transaction.atomic():
+                locked = get_object_or_404(Product.objects.select_for_update(), pk=pk)
+                if new_image:
+                    old_pathname = locked.image_blob_pathname
+                    locked.image_url, locked.image_blob_pathname = new_image
+                locked.name = form.cleaned_data["name"]
+                locked.price = form.cleaned_data["price"]
+                # Typing a number only sets the available stock; quantity_sold
+                # and recorded sales are deliberately left alone.
+                locked.quantity = form.cleaned_data["quantity"]
+                locked.save(
+                    update_fields=[
+                        "name",
+                        "price",
+                        "quantity",
+                        "image_url",
+                        "image_blob_pathname",
+                        "updated_at",
+                    ]
+                )
+
+            if old_pathname:
+                delete_product_image(old_pathname)
             messages.success(request, "Item updated successfully.")
             return redirect("dashboard")
     else:
-        form = ProductEditForm(initial={"name": product.name, "price": product.price})
+        form = ProductEditForm(
+            initial={"name": product.name, "price": product.price, "quantity": product.quantity}
+        )
 
     return render(request, "inventory/edit_product.html", {"form": form, "product": product})
 
