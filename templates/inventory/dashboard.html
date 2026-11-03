@@ -8,6 +8,11 @@
 </div>
 
 {% if products %}
+<div class="search-bar" role="search">
+    <label for="product-search" class="visually-hidden">Search items</label>
+    <input type="search" id="product-search" class="search-input" placeholder="Search items…" autocomplete="off" spellcheck="false">
+</div>
+
 <div class="product-grid">
     {% for product in products %}
     <div class="product-card" data-product-id="{{ product.id }}" data-price="{{ product.price|stringformat:'.2f' }}" data-name="{{ product.name }}">
@@ -53,6 +58,7 @@
     </div>
     {% endfor %}
 </div>
+<p class="empty-state no-results" id="no-results" hidden>No items match “<span id="no-results-term"></span>”.</p>
 {% else %}
 <div class="empty-state">
     <p>No inventory items yet.</p>

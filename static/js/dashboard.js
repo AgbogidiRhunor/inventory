@@ -21,7 +21,51 @@ document.addEventListener("DOMContentLoaded", () => {
         pendingSaleCard = null;
     });
     form.addEventListener("submit", handleSaleSubmit);
+
+    initSearch();
 });
+
+// ---------- Search ----------
+// Lowercase and strip accents so "creole" also finds "Créole".
+function normalizeText(text) {
+    return (text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function initSearch() {
+    const input = document.getElementById("product-search");
+    if (!input) return; // no products yet, so no search bar
+
+    const emptyMessage = document.getElementById("no-results");
+    const emptyTerm = document.getElementById("no-results-term");
+    const items = Array.from(document.querySelectorAll(".product-card")).map((card) => ({
+        card,
+        name: normalizeText(card.dataset.name),
+    }));
+
+    function applyFilter() {
+        const query = normalizeText(input.value);
+        let visible = 0;
+        items.forEach(({ card, name }) => {
+            const match = !query || name.includes(query);
+            card.hidden = !match;
+            if (match) visible += 1;
+        });
+        emptyTerm.textContent = input.value.trim();
+        emptyMessage.hidden = visible > 0;
+    }
+
+    input.addEventListener("input", applyFilter);
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && input.value) {
+            input.value = "";
+            applyFilter();
+        }
+    });
+}
 
 function endpointFor(card, action) {
     const id = card.dataset.productId;
